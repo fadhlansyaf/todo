@@ -108,8 +108,8 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       body: BlocListener<HomeBloc, HomeState>(
         listener: (context, state) {
-          if(state is HomeLoaded){
-            setState((){
+          if (state is HomeLoaded) {
+            setState(() {
               todoList = state.todoList;
             });
           }
@@ -129,10 +129,16 @@ class _MyHomePageState extends State<MyHomePage> {
           body: ListView(
             children: [
               Container(
-                height: 450,
+                height: 430,
                 child: SfDateRangePicker(
                   onSelectionChanged: _onSelectionChanged,
                   selectionMode: DateRangePickerSelectionMode.single,
+                  monthViewSettings: const DateRangePickerMonthViewSettings(
+                    dayFormat: 'EEE',
+                    viewHeaderStyle: DateRangePickerViewHeaderStyle(
+                        backgroundColor: Color(0xFF7fcd91),
+                        textStyle: TextStyle(fontSize: 14, letterSpacing: 5)),
+                  ),
                 ),
               ),
             ],
@@ -176,11 +182,21 @@ class _MyHomePageState extends State<MyHomePage> {
                                   ),
                                   Row(
                                     children: [
-                                      Text(timeOfDay!.format(context), style: const TextStyle(fontSize: 18),),
-                                      IconButton(icon: Icon(Icons.refresh), onPressed: () async {
-                                        timeOfDay = await showTimePicker(context: context, initialTime: timeOfDay!);
-                                        setModalState((){});
-                                      },)
+                                      Text(
+                                        timeOfDay != null
+                                            ? timeOfDay!.format(context)
+                                            : TimeOfDay.now().format(context),
+                                        style: const TextStyle(fontSize: 18),
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(Icons.refresh),
+                                        onPressed: () async {
+                                          timeOfDay = await showTimePicker(
+                                              context: context,
+                                              initialTime: timeOfDay!);
+                                          setModalState(() {});
+                                        },
+                                      )
                                     ],
                                   )
                                 ],
@@ -189,11 +205,22 @@ class _MyHomePageState extends State<MyHomePage> {
                             children: [
                               ElevatedButton(
                                   onPressed: () {
-                                    DateTime currDate = DateTime.fromMillisecondsSinceEpoch(date);
-                                    DateTime submitDate = DateTime(currDate.year, currDate.month, currDate.day, timeOfDay!.hour, timeOfDay!.minute);
+                                    DateTime currDate =
+                                        DateTime.fromMillisecondsSinceEpoch(
+                                            date);
+                                    DateTime submitDate = DateTime(
+                                        currDate.year,
+                                        currDate.month,
+                                        currDate.day,
+                                        timeOfDay!.hour,
+                                        timeOfDay!.minute);
                                     context.read<HomeBloc>().add(HomeInsert(
-                                        TodoModel(subject: subController.text,
-                                            desc: descController.text, date: submitDate.millisecondsSinceEpoch, time: timeOfDay!.format(context))));
+                                        TodoModel(
+                                            subject: subController.text,
+                                            desc: descController.text,
+                                            date: submitDate
+                                                .millisecondsSinceEpoch,
+                                            time: timeOfDay!.format(context))));
                                     Navigator.pop(context);
                                   },
                                   child: const Text('Submit'))
