@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 
 import '../database.dart';
 import '../model.dart';
+import '../notification.dart';
 
 part 'home_event.dart';
 part 'home_state.dart';
@@ -36,6 +37,10 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       return data;
     });
     print(data);
+    String formattedDate = '${DateFormat('yyyy-MM-dd').format(DateTime.fromMillisecondsSinceEpoch(event.todo.date))} ${event.todo.time}';
+    DateTime notifDate = DateTime.parse(formattedDate);
+    NotificationService notificationService = NotificationService();
+    notificationService.scheduleNotifications(event.todo.subject, event.todo.desc, notifDate);
     var data2 = await db.rawQuery("SELECT * FROM $todoTable WHERE DATE = ?", [_date]);
     List<TodoModel> todoList = List<TodoModel>.from(data2.map((e) => TodoModel.fromJson(e)));
     emit(HomeLoaded(todoList));

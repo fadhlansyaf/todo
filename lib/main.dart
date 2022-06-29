@@ -3,8 +3,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:todo/bloc/home_bloc.dart';
 
 import 'home.dart';
+import 'notification.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  NotificationService().init();
   runApp(const MyApp());
 }
 
