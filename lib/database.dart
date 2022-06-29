@@ -43,7 +43,8 @@ class DatabaseProvider{
         'PID INTEGER PRIMARY KEY,'
         'SUBJECT TEXT,'
         'DESC TEXT,'
-        'DATE INTEGER'
+        'DATE TEXT,'
+        'TIME TEXT'
         ')',
   ];
 }

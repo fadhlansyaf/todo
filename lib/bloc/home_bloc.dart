@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:intl/intl.dart';
 
 import '../database.dart';
 import '../model.dart';
@@ -16,13 +17,13 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     on<HomeInsert>(_onHomeInsert);
   }
 
-  late int _date;
+  late String _date;
 
   _onHomeChanged(HomeChanged event, Emitter<HomeState> emit) async {
     emit(HomeLoading());
-    _date = event.date;
+    _date = DateFormat('yyyy-MM-dd').format(DateTime.fromMillisecondsSinceEpoch(event.date));
     Database db = await DatabaseProvider().database;
-    var data = await db.query(todoTable,where: 'DATE = $_date');
+    var data = await db.rawQuery("SELECT * FROM $todoTable WHERE DATE = ?", [_date]);
     List<TodoModel> todoList = List<TodoModel>.from(data.map((e) => TodoModel.fromJson(e)));
     emit(HomeLoaded(todoList));
   }
@@ -35,7 +36,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       return data;
     });
     print(data);
-    var data2 = await db.query(todoTable,where: 'DATE = $_date');
+    var data2 = await db.rawQuery("SELECT * FROM $todoTable WHERE DATE = ?", [_date]);
     List<TodoModel> todoList = List<TodoModel>.from(data2.map((e) => TodoModel.fromJson(e)));
     emit(HomeLoaded(todoList));
   }
