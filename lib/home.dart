@@ -4,6 +4,7 @@ import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
 import 'package:intl/intl.dart';
 import 'package:todo/bloc/home_bloc.dart';
+import 'package:todo/item_list.dart';
 import 'package:todo/model.dart';
 
 import 'database.dart';
@@ -38,63 +39,16 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  Widget createTodoList(int index) {
-    if (index == -1) {
-      return Column(
-        children: [
-          const SizedBox(
-            height: 12.0,
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Container(
-                width: 30,
-                height: 5,
-                decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius:
-                        const BorderRadius.all(Radius.circular(12.0))),
-              ),
-            ],
-          ),
-          const SizedBox(
-            height: 18.0,
-          ),
-        ],
-      );
-    } else {
-      return Column(
-        children: [
-          Text(
-            todoList[index].subject,
-            style: const TextStyle(fontSize: 18),
-          ),
-          const SizedBox(
-            height: 10,
-          ),
-          Text(todoList[index].desc),
-          const SizedBox(
-            height: 20,
-          ),
-          Text(todoList[index].time),
-          const SizedBox(
-            height: 20,
-          )
-        ],
-      );
-    }
-  }
-
-  Widget _panel(ScrollController sc) {
+  final sc = ScrollController();
+  Widget _panel() {
     return MediaQuery.removePadding(
       context: context,
       removeTop: true,
       child: ListView.builder(
         controller: sc,
-        itemCount: todoList.length + 1,
+        itemCount: todoList.length,
         itemBuilder: (context, index) {
-          return createTodoList(index - 1);
+          return TodoItemList(todoData: todoList[index]);
         },
       ),
     );
@@ -103,9 +57,9 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Home'),
-      ),
+      // appBar: AppBar(
+      //   title: const Text('Home'),
+      // ),
       body: BlocListener<HomeBloc, HomeState>(
         listener: (context, state) {
           if (state is HomeLoaded) {
@@ -114,35 +68,59 @@ class _MyHomePageState extends State<MyHomePage> {
             });
           }
         },
-        child: SlidingUpPanel(
-          minHeight: 350,
-          maxHeight: MediaQuery.of(context).size.height - 90,
-          panelBuilder: (sc) => _panel(sc),
-          // panel: Padding(
-          //   padding: const EdgeInsets.all(8),
-          //   child: Column(
-          //     children: [
-          //       Text(DateFormat('EEEE, dd MMMM yyyy').format(date)),
-          //     ],
-          //   ),
-          // ),
-          body: ListView(
-            children: [
-              Container(
-                height: 430,
-                child: SfDateRangePicker(
-                  onSelectionChanged: _onSelectionChanged,
-                  selectionMode: DateRangePickerSelectionMode.single,
-                  monthViewSettings: const DateRangePickerMonthViewSettings(
-                    dayFormat: 'EEE',
-                    viewHeaderStyle: DateRangePickerViewHeaderStyle(
+        child: Stack(
+          children: [
+            AnimatedContainer(
+              duration: Duration(milliseconds: 500),
+              decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Colors.orange.shade100, Colors.orange.shade300],
+              )),
+            ),
+            Column(
+              children: [
+                SizedBox(
+                  height: 56,
+                ),
+                Container(
+                  height: 430,
+                  child: SfDateRangePicker(
+                    onSelectionChanged: _onSelectionChanged,
+                    selectionMode: DateRangePickerSelectionMode.single,
+                    headerStyle: const DateRangePickerHeaderStyle(
                         backgroundColor: Color(0xFF7fcd91),
-                        textStyle: TextStyle(fontSize: 14, letterSpacing: 5)),
+                        textAlign: TextAlign.center,
+                        textStyle: TextStyle(
+                          fontStyle: FontStyle.normal,
+                          fontSize: 25,
+                          letterSpacing: 5,
+                          color: Color(0xFFff5eaea),
+                        )),
+                    monthViewSettings: DateRangePickerMonthViewSettings(
+                      dayFormat: 'EEE',
+                      viewHeaderStyle: DateRangePickerViewHeaderStyle(
+                        backgroundColor: Colors.deepOrange.shade400,
+                        textStyle: TextStyle(fontSize: 14, letterSpacing: 5, ),
+                      ),
+                      viewHeaderHeight: 50
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
+                //_panel()
+                Expanded(
+                  child: ListView.builder(
+                    controller: sc,
+                    itemCount: todoList.length,
+                    itemBuilder: (context, index) {
+                      return TodoItemList(todoData: todoList[index]);
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
