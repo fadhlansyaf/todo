@@ -19,6 +19,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int date = DateTime.now().millisecondsSinceEpoch;
   List<TodoModel> todoList = [];
+  double cardHeight = 0;
 
   final subController = TextEditingController();
   final descController = TextEditingController();
@@ -33,6 +34,7 @@ class _MyHomePageState extends State<MyHomePage> {
   _onSelectionChanged(DateRangePickerSelectionChangedArgs args) {
     if (args.value is DateTime) {
       setState(() {
+        cardHeight = 0;
         date = args.value.millisecondsSinceEpoch;
         context.read<HomeBloc>().add(HomeChanged(date));
       });
@@ -65,6 +67,9 @@ class _MyHomePageState extends State<MyHomePage> {
           if (state is HomeLoaded) {
             setState(() {
               todoList = state.todoList;
+              for(var i in todoList){
+                cardHeight+=107;
+              }
             });
           }
         },
@@ -79,46 +84,53 @@ class _MyHomePageState extends State<MyHomePage> {
                 colors: [Colors.orange.shade100, Colors.orange.shade300],
               )),
             ),
-            Column(
-              children: [
-                SizedBox(
-                  height: 56,
-                ),
-                Container(
-                  height: 430,
-                  child: SfDateRangePicker(
-                    onSelectionChanged: _onSelectionChanged,
-                    selectionMode: DateRangePickerSelectionMode.single,
-                    headerStyle: const DateRangePickerHeaderStyle(
-                        backgroundColor: Color(0xFF7fcd91),
-                        textAlign: TextAlign.center,
-                        textStyle: TextStyle(
-                          fontStyle: FontStyle.normal,
-                          fontSize: 25,
-                          letterSpacing: 5,
-                          color: Color(0xFFff5eaea),
-                        )),
-                    monthViewSettings: DateRangePickerMonthViewSettings(
-                      dayFormat: 'EEE',
-                      viewHeaderStyle: DateRangePickerViewHeaderStyle(
-                        backgroundColor: Colors.deepOrange.shade400,
-                        textStyle: TextStyle(fontSize: 14, letterSpacing: 5, ),
+            SingleChildScrollView(
+              child: Column(
+                children: [
+                  SizedBox(
+                    height: 56,
+                  ),
+                  SizedBox(
+                    height: 430,
+                    child: SfDateRangePicker(
+                      onSelectionChanged: _onSelectionChanged,
+                      selectionMode: DateRangePickerSelectionMode.single,
+                      headerStyle: const DateRangePickerHeaderStyle(
+                          backgroundColor: Color(0xFF7fcd91),
+                          textAlign: TextAlign.center,
+                          textStyle: TextStyle(
+                            fontStyle: FontStyle.normal,
+                            fontSize: 25,
+                            letterSpacing: 5,
+                            color: Color(0xFFff5eaea),
+                          )),
+                      monthViewSettings: DateRangePickerMonthViewSettings(
+                        dayFormat: 'EEE',
+                        viewHeaderStyle: DateRangePickerViewHeaderStyle(
+                          backgroundColor: Colors.deepOrange.shade400,
+                          textStyle: TextStyle(fontSize: 14, letterSpacing: 5, ),
+                        ),
+                        viewHeaderHeight: 50
                       ),
-                      viewHeaderHeight: 50
                     ),
                   ),
-                ),
-                //_panel()
-                Expanded(
-                  child: ListView.builder(
-                    controller: sc,
-                    itemCount: todoList.length,
-                    itemBuilder: (context, index) {
-                      return TodoItemList(todoData: todoList[index]);
-                    },
+                  //_panel()
+                  Card(
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                    child: SizedBox(
+                      height: cardHeight < MediaQuery.of(context).size.height*0.4 ? MediaQuery.of(context).size.height*0.4 : cardHeight,
+                      child: ListView.builder(
+                        controller: sc,
+                        itemCount: todoList.length,
+                        physics: NeverScrollableScrollPhysics(),
+                        itemBuilder: (context, index) {
+                          return TodoItemList(todoData: todoList[index]);
+                        },
+                      ),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         ),
