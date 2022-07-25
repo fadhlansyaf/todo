@@ -21,3 +21,12 @@ class HomeInsert extends HomeEvent{
   @override
   List<Object> get props => [todo];
 }
+
+class HomeDeleted extends HomeEvent{
+  final TodoModel todo;
+
+  const HomeDeleted(this.todo);
+
+  @override
+  List<Object> get props => [todo];
+}

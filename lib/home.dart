@@ -199,6 +199,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                   timeOfDay!.hour,
                                   timeOfDay!.minute);
                               context.read<HomeBloc>().add(HomeInsert(TodoModel(
+                                  id: DateTime.now().millisecond,
                                   subject: subController.text,
                                   desc: descController.text,
                                   date: submitDate.millisecondsSinceEpoch,
@@ -231,6 +232,7 @@ class _MyHomePageState extends State<MyHomePage> {
             )),
           ),
           SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
             child: Column(
               children: [
                 const SizedBox(
@@ -244,7 +246,8 @@ class _MyHomePageState extends State<MyHomePage> {
                   padding: const EdgeInsets.all(8),
                   margin: const EdgeInsets.all(10),
                   child: SfDateRangePicker(
-                    initialSelectedDate: DateTime.fromMillisecondsSinceEpoch(date),
+                    initialSelectedDate:
+                        DateTime.fromMillisecondsSinceEpoch(date),
                     onSelectionChanged: _onSelectionChanged,
                     selectionMode: DateRangePickerSelectionMode.single,
                     headerStyle: const DateRangePickerHeaderStyle(
@@ -276,10 +279,10 @@ class _MyHomePageState extends State<MyHomePage> {
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(15)),
                     child: SizedBox(
-                      height: cardHeight <
-                              MediaQuery.of(context).size.height * 0.37
-                          ? MediaQuery.of(context).size.height * 0.37
-                          : cardHeight,
+                      height:
+                          cardHeight < MediaQuery.of(context).size.height * 0.37
+                              ? MediaQuery.of(context).size.height * 0.37
+                              : cardHeight,
                       child: ListView.builder(
                         shrinkWrap: true,
                         itemCount: todoList.length,
@@ -296,7 +299,9 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ],
       ),
-      const Center(child: Text('Coming Soon'),)
+      const Center(
+        child: Text('Coming Soon'),
+      )
     ];
     return Scaffold(
       // appBar: AppBar(
@@ -306,27 +311,16 @@ class _MyHomePageState extends State<MyHomePage> {
         listener: (context, state) {
           if (state is HomeLoaded) {
             setState(() {
-              todoList = state.todoList;
+              cardHeight = 0;
+              todoList.clear();
+              todoList.addAll(state.todoList);
               for (var _ in todoList) {
-                cardHeight += 107;
+                cardHeight += MediaQuery.of(context).size.height * 0.125;
               }
             });
           }
         },
-        child: BlocListener<HomeBloc, HomeState>(
-          listener: (context, state) {
-            if (state is HomeLoaded) {
-              setState(() {
-                todoList = state.todoList;
-                for (var _ in todoList) {
-                  cardHeight += MediaQuery.of(context).size.height * 0.001;
-                }
-              });
-            }
-          },
-          child: selectedWidget.elementAt(_selectedIndex),
-        )
-
+        child: selectedWidget.elementAt(_selectedIndex),
       ),
       bottomNavigationBar: BottomNavigationBar(
           onTap: _onItemTapped,

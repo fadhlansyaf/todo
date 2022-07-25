@@ -16,6 +16,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   HomeBloc() : super(HomeInitial()) {
     on<HomeChanged>(_onHomeChanged);
     on<HomeInsert>(_onHomeInsert);
+    on<HomeDeleted>(_onHomeDeleted);
   }
 
   late String _date;
@@ -40,7 +41,18 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     String formattedDate = '${DateFormat('yyyy-MM-dd').format(DateTime.fromMillisecondsSinceEpoch(event.todo.date))} ${event.todo.time}';
     DateTime notifDate = DateTime.parse(formattedDate);
     NotificationService notificationService = NotificationService();
-    notificationService.scheduleNotifications(event.todo.subject, event.todo.desc, notifDate);
+    notificationService.scheduleNotifications(event.todo.subject, event.todo.desc, notifDate, event.todo.id);
+    var data2 = await db.rawQuery("SELECT * FROM $todoTable WHERE DATE = ?", [_date]);
+    List<TodoModel> todoList = List<TodoModel>.from(data2.map((e) => TodoModel.fromJson(e)));
+    emit(HomeLoaded(todoList));
+  }
+
+  _onHomeDeleted(HomeDeleted event, Emitter<HomeState> emit) async {
+    emit(HomeLoading());
+    NotificationService notificationService = NotificationService();
+    notificationService.cancelNotifications(event.todo.id);
+    Database db = await DatabaseProvider().database;
+    db.rawDelete('DELETE FROM $todoTable WHERE ID = ?', [event.todo.id]);
     var data2 = await db.rawQuery("SELECT * FROM $todoTable WHERE DATE = ?", [_date]);
     List<TodoModel> todoList = List<TodoModel>.from(data2.map((e) => TodoModel.fromJson(e)));
     emit(HomeLoaded(todoList));

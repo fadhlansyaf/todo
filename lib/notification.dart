@@ -69,11 +69,10 @@ class NotificationService {
     );
   }
 
-  ///Not used
-  Future<void> scheduleNotifications(String title, String body, DateTime date) async {
+  Future<void> scheduleNotifications(String title, String body, DateTime date, int id) async {
     final timezone = await FlutterNativeTimezone.getLocalTimezone();
     await flutterLocalNotificationsPlugin.zonedSchedule(
-        0,
+        id,
         title,
         body,
         tz.TZDateTime(tz.getLocation(timezone), date.year, date.month, date.day, date.hour, date.minute),

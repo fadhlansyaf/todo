@@ -41,6 +41,7 @@ class DatabaseProvider{
   List<String> initScript = [
     'CREATE TABLE Todo ('
         'PID INTEGER PRIMARY KEY,'
+        'ID INTEGER,'
         'SUBJECT TEXT,'
         'DESC TEXT,'
         'DATE TEXT,'
