@@ -1,11 +1,14 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:syncfusion_flutter_datepicker/datepicker.dart';
-import 'package:todo/bloc/home_bloc.dart';
-import 'package:todo/item_list.dart';
+import 'package:todo/widgets/item_list.dart';
 import 'package:todo/model.dart';
+import 'package:todo/widgets/reminder_list.dart';
 
 import 'database.dart';
+import 'home_bloc/home_bloc.dart';
+import 'reminder_bloc/reminder_bloc.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({Key? key}) : super(key: key);
@@ -22,6 +25,10 @@ class _MyHomePageState extends State<MyHomePage> {
   final subController = TextEditingController();
   final descController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+
+  List<MapEntry<int, List<TodoModel>>> groupedList = [];
+  bool reminderIsLoading = false;
+  int dayRange = 3;
 
   @override
   void initState() {
@@ -44,6 +51,12 @@ class _MyHomePageState extends State<MyHomePage> {
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
+      if (index == 1) {
+        DateTime now = DateTime.now();
+        DateTime selectedDate =
+            DateTime(now.year, now.month, now.day + dayRange);
+        context.read<ReminderBloc>().add(LoadReminder(selectedDate, now));
+      }
     });
   }
 
@@ -76,7 +89,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     gridDelegate:
                         const SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: 2),
-                    padding: EdgeInsets.all(8),
+                    padding: const EdgeInsets.all(8),
                     children: [
                       Padding(
                         padding: const EdgeInsets.all(2.0),
@@ -97,7 +110,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                 chooseTodoTime();
                               },
                               child: Container(
-                                child: Icon(Icons.timer),
+                                child: const Icon(Icons.timer),
                                 color: Colors.grey,
                               )),
                         ),
@@ -118,7 +131,7 @@ class _MyHomePageState extends State<MyHomePage> {
                               enableFeedback: true,
                               onTap: () {},
                               child: Container(
-                                child: Icon(Icons.refresh),
+                                child: const Icon(Icons.refresh),
                                 color: Colors.grey,
                               )),
                         ),
@@ -299,8 +312,71 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ],
       ),
-      const Center(
-        child: Text('Coming Soon'),
+      BlocListener<ReminderBloc, ReminderState>(
+        listener: (context, state) {
+          if (state is ReminderLoading) {
+            setState(() {
+              reminderIsLoading = true;
+            });
+          }
+          if (state is ReminderLoaded) {
+            setState(() {
+              List<TodoModel> tempTodo = [];
+              tempTodo.addAll(state.todoList);
+              tempTodo.sort((a, b) => a.date.compareTo(b.date));
+              groupedList.clear();
+              groupedList.addAll(
+                  groupBy(tempTodo, (TodoModel todo) => todo.date)
+                      .entries
+                      .toList());
+              reminderIsLoading = false;
+            });
+          }
+        },
+        child: !reminderIsLoading
+            ? ListView(
+                physics: const NeverScrollableScrollPhysics(),
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: TextFormField(
+                      keyboardType: TextInputType.phone,
+                      initialValue: dayRange.toString(),
+                      decoration:
+                          const InputDecoration(label: Text('Date Range')),
+                      onChanged: (v) {
+                        setState(() {
+                          if (v == '') {
+                            dayRange = 1;
+                          } else {
+                            dayRange = int.parse(v);
+                          }
+                          DateTime now = DateTime.now();
+                          DateTime selectedDate =
+                              DateTime(now.year, now.month, now.day + dayRange);
+                          context
+                              .read<ReminderBloc>()
+                              .add(LoadReminder(selectedDate, now));
+                        });
+                      },
+                    ),
+                  ),
+                  SizedBox(
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: groupedList.length,
+                      physics: const BouncingScrollPhysics(),
+                      itemBuilder: (context, index) {
+                        return ReminderItemList(
+                            todoList: groupedList[index].value);
+                      },
+                    ),
+                  ),
+                ],
+              )
+            : const Center(
+                child: CircularProgressIndicator(),
+              ),
       )
     ];
     return Scaffold(
@@ -325,16 +401,20 @@ class _MyHomePageState extends State<MyHomePage> {
       bottomNavigationBar: BottomNavigationBar(
           onTap: _onItemTapped,
           currentIndex: _selectedIndex,
-          items: [
-            BottomNavigationBarItem(icon: Icon(Icons.refresh), label: 'Item1'),
-            BottomNavigationBarItem(icon: Icon(Icons.refresh), label: 'Item2'),
+          items: const [
+            BottomNavigationBarItem(
+                icon: Icon(Icons.home), label: 'Add Reminder'),
+            BottomNavigationBarItem(
+                icon: Icon(Icons.schedule), label: 'See Reminder'),
           ]),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          showAddSelection();
-        },
-        child: const Icon(Icons.add),
-      ),
+      floatingActionButton: _selectedIndex == 0
+          ? FloatingActionButton(
+              onPressed: () {
+                showAddSelection();
+              },
+              child: const Icon(Icons.add),
+            )
+          : null,
     );
   }
 }

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:todo/model.dart';
 
-import 'bloc/home_bloc.dart';
+import '../home_bloc/home_bloc.dart';
 
 class TodoItemList extends StatelessWidget {
   const TodoItemList({Key? key, required this.todoData}) : super(key: key);
